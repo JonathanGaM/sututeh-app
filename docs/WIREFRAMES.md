@@ -1,6 +1,8 @@
-# Wireframes – App SUTUTEH
+# Wireframes ï¿½ App SUTUTEH
 
-Flujo: Login ? Menú ? Escaneo QR ? Asistencia (con GPS) ? Notificaciones.
+Flujo: Login ? Menï¿½ ? Escaneo QR ? Asistencia (con GPS) ? Notificaciones.
 
 ?? Prototipo en Figma (solo lectura):
 https://www.figma.com/design/l1qdYlgSOkranzUQMbaklT/Untitled?node-id=0-1&p=f&t=2cPygKrK7KPMS3Pl-0
+
+Commit de prueba para integraciÃ³n con Jira (SCRUM-20)
