@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"C:\\Users\\Usuario\\Documents\\10B\\sututeh_app\\lib\" -type d -exec sh -c 'ls -la \"\"$1\"\" 2>/dev/null | head -20' _ {} ;)",
+      "Bash(flutter --version)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
