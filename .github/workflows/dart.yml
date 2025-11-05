@@ -11,6 +11,9 @@ on:
       - main
       - master
 
+permissions:
+  contents: write  # ← Necesario para crear tags y releases
+
 jobs:
   analyze-and-test:
     name: Code Quality & Testing
@@ -26,7 +29,6 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
     
-   
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
@@ -54,11 +56,94 @@ jobs:
     - name: Run tests
       run: flutter test
       continue-on-error: true
+
+  versionado:
+    name: Versionado Automatico
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    needs: analyze-and-test
+    outputs:
+      new_version: ${{ steps.bump.outputs.new_version }}
+      version_number: ${{ steps.bump.outputs.version_number }}
+      build_number: ${{ steps.bump.outputs.build_number }}
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Obtener ultima version
+        id: get_version
+        run: |
+          LAST_TAG=$(git tag -l "v*" | sort -V | tail -n 1)
+          
+          if [ -z "$LAST_TAG" ]; then
+            echo "No hay versiones previas, iniciando en v0.1.0"
+            echo "last_version=v0.0.0" >> $GITHUB_OUTPUT
+          else
+            echo "Última versión encontrada: $LAST_TAG"
+            echo "last_version=$LAST_TAG" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Incrementar version
+        id: bump
+        run: |
+          LAST_VERSION="${{ steps.get_version.outputs.last_version }}"
+          
+          VERSION_NUMBER=$(echo $LAST_VERSION | sed 's/v//' | sed 's/\./ /g')
+          MAJOR=$(echo $VERSION_NUMBER | awk '{print $1}')
+          MINOR=$(echo $VERSION_NUMBER | awk '{print $2}')
+          PATCH=$(echo $VERSION_NUMBER | awk '{print $3}')
+          
+          # Incrementar versión MINOR
+          NEW_MINOR=$((MINOR + 1))
+          NEW_VERSION="v${MAJOR}.${NEW_MINOR}.0"
+          
+          # Para Flutter: version number sin 'v' y build number
+          VERSION_NUM="${MAJOR}.${NEW_MINOR}.0"
+          BUILD_NUM=$((MAJOR * 10000 + NEW_MINOR * 100 + 0))
+          
+          echo "Nueva versión: $NEW_VERSION"
+          echo "Version number: $VERSION_NUM"
+          echo "Build number: $BUILD_NUM"
+          
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version_number=$VERSION_NUM" >> $GITHUB_OUTPUT
+          echo "build_number=$BUILD_NUM" >> $GITHUB_OUTPUT
+      
+      - name: Crear tag de version
+        run: |
+          NEW_VERSION="${{ steps.bump.outputs.new_version }}"
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          LAST_TAG="${{ steps.get_version.outputs.last_version }}"
+          if [ "$LAST_TAG" = "v0.0.0" ]; then
+            COMMITS=$(git log --oneline --no-merges -10)
+          else
+            COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --no-merges)
+          fi
+          
+          TAG_MESSAGE="Release ${NEW_VERSION} - Flutter App
+
+          Cambios en esta version:
+          $COMMITS
+
+          Version: ${{ steps.bump.outputs.version_number }}
+          Build: ${{ steps.bump.outputs.build_number }}
+          Fecha: $(date +'%Y-%m-%d %H:%M:%S')
+          Commit: ${{ github.sha }}"
+          
+          git tag -a "$NEW_VERSION" -m "$TAG_MESSAGE"
+          git push origin "$NEW_VERSION"
+          
+          echo "Tag $NEW_VERSION creado exitosamente"
   
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
-    needs: analyze-and-test
+    needs: [analyze-and-test, versionado]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     
     steps:
@@ -80,42 +165,62 @@ jobs:
     - name: Install dependencies
       run: flutter pub get
     
+    - name: Update version in pubspec.yaml
+      run: |
+        VERSION="${{ needs.versionado.outputs.version_number }}"
+        BUILD="${{ needs.versionado.outputs.build_number }}"
+        sed -i "s/^version: .*/version: ${VERSION}+${BUILD}/" pubspec.yaml
+        echo "Updated pubspec.yaml to version ${VERSION}+${BUILD}"
+        cat pubspec.yaml | grep "version:"
+    
     - name: Build APK (Release)
-      run: flutter build apk --release
+      run: flutter build apk --release --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }}
     
     - name: Build APK (Debug)
-      run: flutter build apk --debug
+      run: flutter build apk --debug --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }}
     
     - name: Build App Bundle
-      run: flutter build appbundle --release
+      run: flutter build appbundle --release --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }}
       continue-on-error: true
+    
+    - name: Rename APKs with version
+      run: |
+        VERSION="${{ needs.versionado.outputs.version_number }}"
+        cd build/app/outputs/flutter-apk/
+        mv app-release.apk sututeh-${VERSION}-release.apk
+        mv app-debug.apk sututeh-${VERSION}-debug.apk
+        ls -lh
     
     - name: Get APK info
       run: |
+        VERSION="${{ needs.versionado.outputs.version_number }}"
+        echo "================================"
+        echo "Build Info - Version $VERSION"
+        echo "================================"
         echo "APK Size (Release):"
-        ls -lh build/app/outputs/flutter-apk/app-release.apk
+        ls -lh build/app/outputs/flutter-apk/sututeh-${VERSION}-release.apk
         echo "APK Size (Debug):"
-        ls -lh build/app/outputs/flutter-apk/app-debug.apk
+        ls -lh build/app/outputs/flutter-apk/sututeh-${VERSION}-debug.apk
     
     - name: Upload Release APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-release
-        path: build/app/outputs/flutter-apk/app-release.apk
+        name: sututeh-${{ needs.versionado.outputs.version_number }}-release
+        path: build/app/outputs/flutter-apk/sututeh-${{ needs.versionado.outputs.version_number }}-release.apk
         retention-days: 30
     
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug
-        path: build/app/outputs/flutter-apk/app-debug.apk
+        name: sututeh-${{ needs.versionado.outputs.version_number }}-debug
+        path: build/app/outputs/flutter-apk/sututeh-${{ needs.versionado.outputs.version_number }}-debug.apk
         retention-days: 7
     
     - name: Upload App Bundle
       uses: actions/upload-artifact@v4
       if: success()
       with:
-        name: app-bundle
+        name: sututeh-${{ needs.versionado.outputs.version_number }}-bundle
         path: build/app/outputs/bundle/release/app-release.aab
         retention-days: 30
       continue-on-error: true
@@ -124,7 +229,72 @@ jobs:
       run: |
         echo "================================"
         echo "Build completed successfully"
-        echo "Release APK: Available for download"
-        echo "Debug APK: Available for download"
+        echo "Version: ${{ needs.versionado.outputs.new_version }}"
+        echo "Build Number: ${{ needs.versionado.outputs.build_number }}"
+        echo "Release APK: sututeh-${{ needs.versionado.outputs.version_number }}-release.apk"
+        echo "Debug APK: sututeh-${{ needs.versionado.outputs.version_number }}-debug.apk"
         echo "App Bundle: Available for Play Store"
         echo "================================"
+
+  create-release:
+    name: Crear GitHub Release
+    runs-on: ubuntu-latest
+    needs: [versionado, build-android]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download Release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: sututeh-${{ needs.versionado.outputs.version_number }}-release
+          path: ./artifacts/
+      
+      - name: Download App Bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: sututeh-${{ needs.versionado.outputs.version_number }}-bundle
+          path: ./artifacts/
+        continue-on-error: true
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.versionado.outputs.new_version }}
+          name: SUTUTEH App ${{ needs.versionado.outputs.new_version }}
+          body: |
+            ##  SUTUTEH Mobile App - Release ${{ needs.versionado.outputs.new_version }}
+            
+            ###  Información de la versión
+            - **Versión:** ${{ needs.versionado.outputs.version_number }}
+            - **Build Number:** ${{ needs.versionado.outputs.build_number }}
+            - **Fecha:** ${{ github.event.head_commit.timestamp }}
+            - **Commit:** ${{ github.sha }}
+            
+            ###  Descargas disponibles
+            - **APK Release:** Para instalación directa en Android
+            - **App Bundle (AAB):** Para subir a Google Play Store
+            
+            ### Enlaces útiles
+            - [Ver código fuente](https://github.com/${{ github.repository }}/tree/${{ needs.versionado.outputs.new_version }})
+            - [Comparar cambios](https://github.com/${{ github.repository }}/compare/${{ steps.get_version.outputs.last_version }}...${{ needs.versionado.outputs.new_version }})
+            
+            ### Desarrollado por
+            ${{ github.event.head_commit.author.name }}
+          draft: false
+          prerelease: false
+          files: |
+            ./artifacts/sututeh-${{ needs.versionado.outputs.version_number }}-release.apk
+            ./artifacts/app-release.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Release Summary
+        run: |
+          echo "================================"
+          echo "GitHub Release creado"
+          echo "Tag: ${{ needs.versionado.outputs.new_version }}"
+          echo "URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.versionado.outputs.new_version }}"
+          echo "================================"
