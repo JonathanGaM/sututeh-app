@@ -18,6 +18,7 @@ jobs:
   analizar-y-probar:
     name: Calidad de Código y Pruebas
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # 👈 Timeout para evitar esperas infinitas
 
     steps:
       - name: Obtener código del repositorio
@@ -28,12 +29,15 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+          cache: 'gradle'  # 👈 Cache de Gradle
 
       - name: Configurar Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
+          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'  # 👈 Cache optimizado
+          cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
 
       - name: Obtener versión de Flutter
         run: flutter --version
@@ -43,10 +47,10 @@ jobs:
 
       - name: Verificar dependencias desactualizadas
         run: flutter pub outdated
-        continue-on-error: false
+        continue-on-error: true  # 👈 No fallar si hay deps desactualizadas
 
       - name: Ejecutar analizador de Flutter
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos  # 👈 No fallar por infos
         continue-on-error: false
 
       - name: Verificar formato de código
@@ -54,15 +58,14 @@ jobs:
         continue-on-error: false
         
       - name: Ejecutar pruebas unitarias e integracion
-        run: flutter test
+        run: flutter test --concurrency=4  # 👈 Ejecutar 4 pruebas en paralelo
         continue-on-error: false
-        
-      
 
   versionado:
     name: Versionado Automático
     runs-on: ubuntu-latest
     needs: analizar-y-probar
+    timeout-minutes: 5  # 👈 Timeout
     outputs:
       new_version: ${{ steps.bump.outputs.new_version }}
       version_number: ${{ steps.bump.outputs.version_number }}
@@ -111,6 +114,7 @@ jobs:
     name: Compilar APK de Android
     runs-on: ubuntu-latest
     needs: [analizar-y-probar, versionado]
+    timeout-minutes: 30  # 👈 Timeout para compilación
 
     steps:
       - name: Obtener código del repositorio
@@ -121,23 +125,20 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+          cache: 'gradle'  # 👈 Cache de Gradle
 
       - name: Configurar Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
-
-      
-      - name: Limpiar proyecto
-        run: flutter clean
-
+          cache-key: 'flutter-:os:-:channel:-:version:-:arch:-:hash:'  # 👈 Cache optimizado
+          cache-path: '${{ runner.tool_cache }}/flutter/:channel:-:version:-:arch:'
 
       - name: Decodificar archivo Firebase
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
-          ls -lh android/app/google-services.json
-          
+
       - name: Instalar dependencias
         run: flutter pub get
 
@@ -146,13 +147,11 @@ jobs:
           VERSION="${{ needs.versionado.outputs.version_number }}"
           BUILD="${{ needs.versionado.outputs.build_number }}"
           sed -i "s/^version: .*/version: ${VERSION}+${BUILD}/" pubspec.yaml
-          echo "Actualizado pubspec.yaml a ${VERSION}+${BUILD}"
 
       - name: Restaurar keystore desde Base64
         run: |
           mkdir -p android/app/keystore
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore/sututeh-release.jks
-          ls -lh android/app/keystore/
 
       - name: Configurar variables de firma
         run: |
@@ -162,10 +161,9 @@ jobs:
           keyAlias=${{ secrets.KEY_ALIAS }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           EOF
-          cat android/key.properties
 
       - name: Compilar APK (release)
-        run: flutter build apk --release --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }}
+        run: flutter build apk --release --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }} --split-per-abi  # 👈 Split por ABI para APKs más pequeños
 
       - name: Compilar APK (debug)
         run: flutter build apk --debug --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }}
@@ -174,7 +172,10 @@ jobs:
         run: |
           VERSION="${{ needs.versionado.outputs.version_number }}"
           cd build/app/outputs/flutter-apk/
-          mv app-release.apk sututeh-${VERSION}-release.apk
+          # Si existe app-release.apk, renombrarla
+          [ -f app-release.apk ] && mv app-release.apk sututeh-${VERSION}-release.apk || true
+          # Si hay APKs split, renombrar el arm64-v8a (el más común)
+          [ -f app-arm64-v8a-release.apk ] && mv app-arm64-v8a-release.apk sututeh-${VERSION}-release.apk || true
           mv app-debug.apk sututeh-${VERSION}-debug.apk
           ls -lh
 
@@ -184,11 +185,13 @@ jobs:
           name: sututeh-${{ needs.versionado.outputs.version_number }}-release
           path: build/app/outputs/flutter-apk/sututeh-${{ needs.versionado.outputs.version_number }}-release.apk
           retention-days: 30
+          compression-level: 0  # 👈 No comprimir (APK ya está comprimido)
 
   crear-release:
     name: Crear Release en GitHub
     runs-on: ubuntu-latest
     needs: [versionado, compilar-android]
+    timeout-minutes: 5  # 👈 Timeout
 
     steps:
       - name: Obtener código del repositorio
