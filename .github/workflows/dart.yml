@@ -203,50 +203,12 @@ jobs:
         mv app-debug.apk sututeh-${VERSION}-debug.apk
         ls -lh
     
-    - name: Obtener información de APKs
-      run: |
-        VERSION="${{ needs.versionado.outputs.version_number }}"
-        echo "================================"
-        echo "Información de Compilación - Versión $VERSION"
-        echo "================================"
-        echo "Tamaño APK (Producción):"
-        ls -lh build/app/outputs/flutter-apk/sututeh-${VERSION}-release.apk
-        echo "Tamaño APK (Depuración):"
-        ls -lh build/app/outputs/flutter-apk/sututeh-${VERSION}-debug.apk
-    
-    - name: Subir APK de producción
+    - name: Subir APKs
       uses: actions/upload-artifact@v4
       with:
         name: sututeh-${{ needs.versionado.outputs.version_number }}-release
         path: build/app/outputs/flutter-apk/sututeh-${{ needs.versionado.outputs.version_number }}-release.apk
         retention-days: 30
-    
-    - name: Subir APK de depuración
-      uses: actions/upload-artifact@v4
-      with:
-        name: sututeh-${{ needs.versionado.outputs.version_number }}-debug
-        path: build/app/outputs/flutter-apk/sututeh-${{ needs.versionado.outputs.version_number }}-debug.apk
-        retention-days: 7
-    
-    - name: Subir paquete de aplicación
-      uses: actions/upload-artifact@v4
-      if: success()
-      with:
-        name: sututeh-${{ needs.versionado.outputs.version_number }}-bundle
-        path: build/app/outputs/bundle/release/app-release.aab
-        retention-days: 30
-      continue-on-error: true
-    
-    - name: Resumen de compilación
-      run: |
-        echo "================================"
-        echo "Compilación completada exitosamente"
-        echo "Versión: ${{ needs.versionado.outputs.new_version }}"
-        echo "Número de Build: ${{ needs.versionado.outputs.build_number }}"
-        echo "APK de Producción: sututeh-${{ needs.versionado.outputs.version_number }}-release.apk"
-        echo "APK de Depuración: sututeh-${{ needs.versionado.outputs.version_number }}-debug.apk"
-        echo "Paquete de Aplicación: Disponible para Play Store"
-        echo "================================"
 
   crear-release:
     name: Crear Release en GitHub
@@ -264,55 +226,25 @@ jobs:
           name: sututeh-${{ needs.versionado.outputs.version_number }}-release
           path: ./artifacts/
       
-      - name: Descargar paquete de aplicación
-        uses: actions/download-artifact@v4
-        with:
-          name: sututeh-${{ needs.versionado.outputs.version_number }}-bundle
-          path: ./artifacts/
-        continue-on-error: true
-      
       - name: Crear Release en GitHub
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.versionado.outputs.new_version }}
           name: SUTUTEH App ${{ needs.versionado.outputs.new_version }}
           body: |
-            ## SUTUTEH Mobile App - Release ${{ needs.versionado.outputs.new_version }}
+            ## 📱 SUTUTEH Mobile App - Release ${{ needs.versionado.outputs.new_version }}
             
-            ### Información de la versión
-            - **Versión:** ${{ needs.versionado.outputs.version_number }}
-            - **Número de Build:** ${{ needs.versionado.outputs.build_number }}
-            - **Fecha:** ${{ github.event.head_commit.timestamp }}
-            - **Commit:** ${{ github.sha }}
+            **Versión:** ${{ needs.versionado.outputs.version_number }}
+            **Build:** ${{ needs.versionado.outputs.build_number }}
+            **Fecha:** ${{ github.event.head_commit.timestamp }}
             
-            ### Descargas disponibles
-            - **APK de Producción:** Para instalación directa en Android
-            - **Paquete de Aplicación (AAB):** Para subir a Google Play Store
+            ### 🚀 Archivos
+            - APK de producción listo para instalación manual
             
-            ### Instrucciones de instalación
-            1. Descarga el archivo sututeh-${{ needs.versionado.outputs.version_number }}-release.apk
-            2. En tu Android, ve a Ajustes - Seguridad - Instalar aplicaciones desconocidas
-            3. Habilita tu navegador o administrador de archivos
-            4. Abre el APK descargado e instala
-            
-            ### Enlaces útiles
-            - [Ver código fuente](https://github.com/${{ github.repository }}/tree/${{ needs.versionado.outputs.new_version }})
-            - [Comparar cambios](https://github.com/${{ github.repository }}/compare/v0.0.0...${{ needs.versionado.outputs.new_version }})
-            
-            ### Desarrollado por
+            ### 👨‍💻 Autor
             **${{ github.event.head_commit.author.name }}**
-          draft: false
-          prerelease: false
-          files: |
-            ./artifacts/sututeh-${{ needs.versionado.outputs.version_number }}-release.apk
-            ./artifacts/app-release.aab
+            
+            [Ver código fuente](https://github.com/${{ github.repository }}/tree/${{ needs.versionado.outputs.new_version }})
+          files: ./artifacts/sututeh-${{ needs.versionado.outputs.version_number }}-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Resumen del Release
-        run: |
-          echo "================================"
-          echo "Release en GitHub creado exitosamente"
-          echo "Etiqueta: ${{ needs.versionado.outputs.new_version }}"
-          echo "URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.versionado.outputs.new_version }}"
-          echo "================================"
