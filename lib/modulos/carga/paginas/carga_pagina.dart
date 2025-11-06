@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 class CargaPagina extends StatefulWidget {
   const CargaPagina({super.key});
@@ -11,14 +10,34 @@ class CargaPagina extends StatefulWidget {
 class _CargaPaginaState extends State<CargaPagina>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat();
+      duration: const Duration(milliseconds: 1500),
+    );
+
+    // Animación de fade in/out suave
+    _fadeAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Animación de escala sutil
+    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeOut,
+      ),
+    );
+
+    _controller.forward();
   }
 
   @override
@@ -33,29 +52,66 @@ class _CargaPaginaState extends State<CargaPagina>
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.black87, Colors.black],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF5F5F5), // Gris muy claro
+              Color(0xFFFFFFFF), // Blanco
+            ],
           ),
         ),
         child: Center(
-          child: Stack(
-            alignment: Alignment.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Arco verde animado que gira
-              RotationTransition(
-                turns: _controller,
-                child: CustomPaint(
-                  size: const Size(200, 200),
-                  painter: _ArcoPainter(),
+              // Logo con animación sutil
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: child,
+                    ),
+                  );
+                },
+                child: Image.asset(
+                  'assets/imagenes/logoSth.png',
+                  width: 180,
+                  height: 180,
                 ),
               ),
-
-              // Logo en el centro
-              Image.asset(
-                'assets/imagenes/logoSth.png',
-                width: 150,
-                height: 150,
+              
+              const SizedBox(height: 40),
+              
+              // Nombre de la app
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: const Text(
+                  'SUTUTEH',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF4CAF50),
+                    letterSpacing: 2,
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 8),
+              
+              // Subtítulo
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: const Text(
+                  'Sindicato Único de Trabajadores',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black54,
+                    letterSpacing: 0.5,
+                  ),
+                ),
               ),
             ],
           ),
@@ -63,23 +119,4 @@ class _CargaPaginaState extends State<CargaPagina>
       ),
     );
   }
-}
-
-class _ArcoPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.green
-      ..strokeWidth = 8
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
-
-    // Dibuja solo 120° (1/3 del círculo)
-    canvas.drawArc(rect, 0, math.pi * 2 / 3, false, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
