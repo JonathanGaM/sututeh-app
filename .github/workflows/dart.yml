@@ -77,7 +77,6 @@ jobs:
         id: get_version
         run: |
           LAST_TAG=$(git tag -l "v*" | sort -V | tail -n 1)
-          
           if [ -z "$LAST_TAG" ]; then
             echo "No hay versiones previas, iniciando en v0.1.0"
             echo "last_version=v0.0.0" >> $GITHUB_OUTPUT
@@ -90,22 +89,17 @@ jobs:
         id: bump
         run: |
           LAST_VERSION="${{ steps.get_version.outputs.last_version }}"
-          
           VERSION_NUMBER=$(echo $LAST_VERSION | sed 's/v//' | sed 's/\./ /g')
           MAJOR=$(echo $VERSION_NUMBER | awk '{print $1}')
           MINOR=$(echo $VERSION_NUMBER | awk '{print $2}')
           PATCH=$(echo $VERSION_NUMBER | awk '{print $3}')
-          
           NEW_MINOR=$((MINOR + 1))
           NEW_VERSION="v${MAJOR}.${NEW_MINOR}.0"
-          
           VERSION_NUM="${MAJOR}.${NEW_MINOR}.0"
           BUILD_NUM=$((MAJOR * 10000 + NEW_MINOR * 100 + 0))
-          
           echo "Nueva versión: $NEW_VERSION"
           echo "Version number: $VERSION_NUM"
           echo "Build number: $BUILD_NUM"
-          
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "version_number=$VERSION_NUM" >> $GITHUB_OUTPUT
           echo "build_number=$BUILD_NUM" >> $GITHUB_OUTPUT
@@ -113,17 +107,14 @@ jobs:
       - name: Crear etiqueta de versión
         run: |
           NEW_VERSION="${{ steps.bump.outputs.new_version }}"
-          
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          
           LAST_TAG="${{ steps.get_version.outputs.last_version }}"
           if [ "$LAST_TAG" = "v0.0.0" ]; then
             COMMITS=$(git log --oneline --no-merges -10)
           else
             COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --no-merges)
           fi
-          
           TAG_MESSAGE="Release ${NEW_VERSION} - Aplicación Flutter
 
           Cambios en esta versión:
@@ -133,10 +124,8 @@ jobs:
           Build: ${{ steps.bump.outputs.build_number }}
           Fecha: $(date +'%Y-%m-%d %H:%M:%S')
           Commit: ${{ github.sha }}"
-          
           git tag -a "$NEW_VERSION" -m "$TAG_MESSAGE"
           git push origin "$NEW_VERSION"
-          
           echo "Etiqueta $NEW_VERSION creada exitosamente"
   
   compilar-android:
@@ -169,13 +158,6 @@ jobs:
         echo "Restaurando google-services.json desde secrets..."
         echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
         echo "Archivo google-services.json restaurado correctamente"
-        if [ -f android/app/google-services.json ]; then
-          echo "Archivo google-services.json existe"
-          ls -lh android/app/google-services.json
-        else
-          echo "ERROR: google-services.json no se pudo crear"
-          exit 1
-        fi
     
     - name: Actualizar versión en pubspec.yaml
       run: |
@@ -185,13 +167,33 @@ jobs:
         echo "Actualizado pubspec.yaml a versión ${VERSION}+${BUILD}"
         cat pubspec.yaml | grep "version:"
     
+    - name: Restaurar keystore desde Base64
+      run: |
+        echo "🔐 Restaurando keystore desde secreto..."
+        mkdir -p android/app/keystore
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore/sututeh-release.jks
+        echo "✅ Keystore restaurado en android/app/keystore/sututeh-release.jks"
+        ls -lh android/app/keystore/
+    
+    - name: Configurar variables de firma
+      run: |
+        echo "🧩 Creando archivo key.properties..."
+        cat <<EOF > android/key.properties
+        storeFile=android/app/keystore/sututeh-release.jks
+        storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+        keyAlias=${{ secrets.KEY_ALIAS }}
+        keyPassword=${{ secrets.KEY_PASSWORD }}
+        EOF
+        echo "✅ key.properties creado correctamente."
+        cat android/key.properties
+    
     - name: Compilar APK de producción
       run: flutter build apk --release --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }}
     
     - name: Compilar APK de depuración
       run: flutter build apk --debug --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }}
     
-    - name: Compilar paquete de aplicación
+    - name: Compilar paquete de aplicación (AAB)
       run: flutter build appbundle --release --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }}
       continue-on-error: true
     
