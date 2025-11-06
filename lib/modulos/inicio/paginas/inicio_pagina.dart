@@ -19,116 +19,113 @@ class _InicioPaginaState extends State<InicioPagina> {
 
   // 🔹 Páginas que se renderizan según el menú inferior
   // 🔹 Páginas que se renderizan según el menú inferior
-// 🔹 Páginas que se renderizan según el menú inferior
-final _pages = [
-  SingleChildScrollView(
-    padding: const EdgeInsets.all(16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // 🔹 Imagen principal
-        Container(
-          margin: const EdgeInsets.only(bottom: 20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          clipBehavior: Clip.hardEdge,
-          child: Image.asset(
-            "assets/imagenes/p.jpg", // tu imagen
-            fit: BoxFit.cover,
-            height: 200,
-            width: double.infinity, // ocupa todo el ancho igual que los contenedores
-          ),
-        ),
-
-        // 🔹 Contenedor de Misión
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E2939),
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Misión1",
-                style: TextStyle(
-                  color: Colors.greenAccent,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+  // 🔹 Páginas que se renderizan según el menú inferior
+  final _pages = [
+    SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 🔹 Imagen principal
+          Container(
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                 ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                "Representar y defender los intereses laborales, profesionales y humanos de los agremiados, promoviendo la unión, la participación y el desarrollo continuo dentro de la comunidad universitaria.",
-                style: TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-            ],
+              ],
+            ),
+            clipBehavior: Clip.hardEdge,
+            child: Image.asset(
+              "assets/imagenes/p.jpg", // tu imagen
+              fit: BoxFit.cover,
+              height: 200,
+              width: double
+                  .infinity, // ocupa todo el ancho igual que los contenedores
+            ),
           ),
-        ),
-        const SizedBox(height: 20),
 
-        // 🔹 Contenedor de Visión
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E2939),
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.25),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Visión",
-                style: TextStyle(
-                  color: Colors.greenAccent,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+          // 🔹 Contenedor de Misión
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E2939),
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  blurRadius: 6,
+                  offset: const Offset(0, 3),
                 ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                "Ser un sindicato sólido, transparente y comprometido con el bienestar de sus miembros, fomentando la participación activa y el crecimiento profesional en un entorno de respeto y colaboración.",
-                style: TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-            ],
+              ],
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Misión1",
+                  style: TextStyle(
+                    color: Colors.greenAccent,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  "Representar y defender los intereses laborales, profesionales y humanos de los agremiados, promoviendo la unión, la participación y el desarrollo continuo dentro de la comunidad universitaria.",
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 20),
+
+          // 🔹 Contenedor de Visión
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E2939),
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  blurRadius: 6,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Visión",
+                  style: TextStyle(
+                    color: Colors.greenAccent,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  "Ser un sindicato sólido, transparente y comprometido con el bienestar de sus miembros, fomentando la participación activa y el crecimiento profesional en un entorno de respeto y colaboración.",
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     ),
-  ),
-  const EscanerPagina(),
-  const NotificacionesPagina(),
-];
+    const EscanerPagina(),
+    const NotificacionesPagina(),
+  ];
 
   // 🔹 Títulos dinámicos del AppBar
-  final List<String> _titulos = [
-    'SUTUTEH',
-    'Escáner QR',
-    'Avisos',
-  ];
+  final List<String> _titulos = ['SUTUTEH', 'Escáner QR', 'Avisos'];
 
   @override
   Widget build(BuildContext context) {
@@ -164,14 +161,17 @@ final _pages = [
               width: double.infinity,
               color: Colors.green,
               padding: const EdgeInsets.only(
-                  top: 50, bottom: 25, left: 16, right: 16),
+                top: 50,
+                bottom: 25,
+                left: 16,
+                right: 16,
+              ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage:
-                        AssetImage("assets/imagenes/perfil.webp"),
+                    backgroundImage: AssetImage("assets/imagenes/perfil.webp"),
                     backgroundColor: Colors.transparent,
                   ),
                   SizedBox(height: 10),
@@ -187,10 +187,7 @@ final _pages = [
                   SizedBox(height: 5),
                   Text(
                     "Agremiado",
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -203,41 +200,52 @@ final _pages = [
                 padding: EdgeInsets.zero,
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.person_outline,
-                        color: Colors.lightBlueAccent),
-                    title: const Text("Perfil",
-                        style: TextStyle(color: Colors.white)),
+                    leading: const Icon(
+                      Icons.person_outline,
+                      color: Colors.lightBlueAccent,
+                    ),
+                    title: const Text(
+                      "Perfil",
+                      style: TextStyle(color: Colors.white),
+                    ),
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (_) => const PerfilPagina()),
+                        MaterialPageRoute(builder: (_) => const PerfilPagina()),
                       );
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.help_outline,
-                        color: Colors.lightBlueAccent),
-                    title: const Text("Ayuda",
-                        style: TextStyle(color: Colors.white)),
+                    leading: const Icon(
+                      Icons.help_outline,
+                      color: Colors.lightBlueAccent,
+                    ),
+                    title: const Text(
+                      "Ayuda",
+                      style: TextStyle(color: Colors.white),
+                    ),
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (_) => const AyudaPagina()),
+                        MaterialPageRoute(builder: (_) => const AyudaPagina()),
                       );
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.info_outline,
-                        color: Colors.lightBlueAccent),
-                    title: const Text("Acerca de",
-                        style: TextStyle(color: Colors.white)),
+                    leading: const Icon(
+                      Icons.info_outline,
+                      color: Colors.lightBlueAccent,
+                    ),
+                    title: const Text(
+                      "Acerca de",
+                      style: TextStyle(color: Colors.white),
+                    ),
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => const AcercaDePagina()),
+                          builder: (_) => const AcercaDePagina(),
+                        ),
                       );
                     },
                   ),
@@ -253,8 +261,7 @@ final _pages = [
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -265,8 +272,7 @@ final _pages = [
                   icon: const Icon(Icons.logout, color: Colors.white),
                   label: const Text(
                     "Cerrar Sesión",
-                    style:
-                        TextStyle(color: Colors.white, fontSize: 16),
+                    style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
               ),
@@ -311,8 +317,7 @@ final _pages = [
             AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOut,
-              left:
-                  MediaQuery.of(context).size.width / 3 * _index,
+              left: MediaQuery.of(context).size.width / 3 * _index,
               bottom: 0,
               child: Container(
                 width: MediaQuery.of(context).size.width / 3,

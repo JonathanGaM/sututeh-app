@@ -22,20 +22,16 @@ class _CargaPaginaState extends State<CargaPagina>
     );
 
     // Animación de fade in/out suave
-    _fadeAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.3,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     // Animación de escala sutil
-    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOut,
-      ),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     _controller.forward();
   }
@@ -82,9 +78,9 @@ class _CargaPaginaState extends State<CargaPagina>
                   height: 180,
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Nombre de la app
               FadeTransition(
                 opacity: _fadeAnimation,
@@ -98,9 +94,9 @@ class _CargaPaginaState extends State<CargaPagina>
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 8),
-              
+
               // Subtítulo
               FadeTransition(
                 opacity: _fadeAnimation,

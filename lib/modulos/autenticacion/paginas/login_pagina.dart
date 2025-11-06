@@ -10,7 +10,6 @@ class LoginPagina extends StatefulWidget {
   State<LoginPagina> createState() => _LoginPaginaState();
 }
 
-
 class _LoginPaginaState extends State<LoginPagina> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -52,7 +51,9 @@ class _LoginPaginaState extends State<LoginPagina> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Error al iniciar sesión. Verifica tus credenciales.'),
+            content: Text(
+              'Error al iniciar sesión. Verifica tus credenciales.',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -74,7 +75,10 @@ class _LoginPaginaState extends State<LoginPagina> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['error'] ?? 'Este correo no está registrado como agremiado'),
+              content: Text(
+                result['error'] ??
+                    'Este correo no está registrado como agremiado',
+              ),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 4),
             ),
@@ -163,7 +167,10 @@ class _LoginPaginaState extends State<LoginPagina> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: greenSututeh, width: 2),
+                        borderSide: const BorderSide(
+                          color: greenSututeh,
+                          width: 2,
+                        ),
                       ),
                       prefixIcon: const Icon(Icons.email, color: iconColor),
                     ),
@@ -192,12 +199,17 @@ class _LoginPaginaState extends State<LoginPagina> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: greenSututeh, width: 2),
+                        borderSide: const BorderSide(
+                          color: greenSututeh,
+                          width: 2,
+                        ),
                       ),
                       prefixIcon: const Icon(Icons.lock, color: iconColor),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _showPassword ? Icons.visibility_off : Icons.visibility,
+                          _showPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
                           color: Colors.black54,
                         ),
                         onPressed: () {
@@ -242,7 +254,10 @@ class _LoginPaginaState extends State<LoginPagina> {
                       Expanded(child: Divider(color: Colors.grey)),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Text("o", style: TextStyle(color: Colors.black54)),
+                        child: Text(
+                          "o",
+                          style: TextStyle(color: Colors.black54),
+                        ),
                       ),
                       Expanded(child: Divider(color: Colors.grey)),
                     ],

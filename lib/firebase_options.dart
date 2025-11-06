@@ -70,7 +70,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '611741077092',
     projectId: 'apis-743a8',
     storageBucket: 'apis-743a8.firebasestorage.app',
-    iosClientId: '611741077092-a94bciaarupcb3mhsmqvjsivjboeds80.apps.googleusercontent.com',
+    iosClientId:
+        '611741077092-a94bciaarupcb3mhsmqvjsivjboeds80.apps.googleusercontent.com',
     iosBundleId: 'com.example.sututehApp',
   );
 }

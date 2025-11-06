@@ -25,15 +25,12 @@ class AuthService {
       final response = await http.post(
         Uri.parse(ApiConfig.loginMobile),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
+        body: jsonEncode({'email': email, 'password': password}),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+
         // Guardar token localmente
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('authToken', data['token']);
@@ -65,7 +62,7 @@ class AuthService {
       } else {
         // Para Android/iOS
         final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-        
+
         if (googleUser == null) {
           print('Usuario canceló el login de Google');
           return null;
@@ -100,7 +97,7 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+
         // Guardar token y datos localmente
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('authToken', data['token']);
@@ -116,13 +113,12 @@ class AuthService {
         print('Correo no registrado en BD: ${response.body}');
         await _auth.signOut();
         if (!kIsWeb) await _googleSignIn.signOut();
-        
+
         return {
           'error': 'Este correo no está registrado como agremiado',
-          'exists': false
+          'exists': false,
         };
       }
-
     } catch (e) {
       print('Error detallado en Google Sign-In: $e');
       // Cerrar sesión en caso de error
@@ -169,7 +165,7 @@ class AuthService {
   Future<Map<String, dynamic>?> getUserData() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('authToken');
-    
+
     if (token == null) return null;
 
     return {

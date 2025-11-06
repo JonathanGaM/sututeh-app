@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; // 👈 necesario para Timer
-import 'package:firebase_core/firebase_core.dart';  // 👈 AGREGAR
-import 'firebase_options.dart';  // 👈 AGREGAR
+import 'package:firebase_core/firebase_core.dart'; // 👈 AGREGAR
+import 'firebase_options.dart'; // 👈 AGREGAR
 import 'modulos/carga/paginas/carga_pagina.dart';
 import 'modulos/autenticacion/paginas/login_pagina.dart';
 
@@ -17,9 +17,6 @@ void main() async {
   }
   runApp(const MyApp());
 }
-
-
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

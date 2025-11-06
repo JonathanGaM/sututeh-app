@@ -105,7 +105,9 @@ class NotificacionesPagina extends StatelessWidget {
                           if (item['nuevo'] == true)
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.blueAccent,
                                 borderRadius: BorderRadius.circular(12),

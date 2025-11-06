@@ -4,19 +4,19 @@ import 'package:url_launcher/url_launcher.dart';
 class AcercaDePagina extends StatelessWidget {
   const AcercaDePagina({super.key});
 
- Future<void> _abrirSitioWeb() async {
-  final Uri url = Uri.parse('https://sututeh.com');
-  
-  // Verifica que la URL se pueda lanzar
-  if (await canLaunchUrl(url)) {
-    await launchUrl(
-      url,
-      mode: LaunchMode.externalApplication, // Abre en navegador externo
-    );
-  } else {
-    throw Exception('No se pudo abrir el sitio web');
+  Future<void> _abrirSitioWeb() async {
+    final Uri url = Uri.parse('https://sututeh.com');
+
+    // Verifica que la URL se pueda lanzar
+    if (await canLaunchUrl(url)) {
+      await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication, // Abre en navegador externo
+      );
+    } else {
+      throw Exception('No se pudo abrir el sitio web');
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -62,10 +62,13 @@ class AcercaDePagina extends StatelessWidget {
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 22,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               onPressed: _abrirSitioWeb,
               icon: const Icon(Icons.public, color: Colors.white),

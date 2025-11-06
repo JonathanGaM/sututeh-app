@@ -77,7 +77,9 @@ class PerfilPagina extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const DatosPersonalesPagina()),
+                  MaterialPageRoute(
+                    builder: (_) => const DatosPersonalesPagina(),
+                  ),
                 );
               },
             ),
@@ -137,11 +139,13 @@ class PerfilPagina extends StatelessWidget {
   }
 
   // 🔹 Widget auxiliar para tarjetas de perfil
-  Widget _buildCard(BuildContext context,
-      {required IconData icon,
-      required String title,
-      required String subtitle,
-      required VoidCallback onTap}) {
+  Widget _buildCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1E2939),
@@ -155,7 +159,10 @@ class PerfilPagina extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 10,
+        ),
         leading: Icon(icon, color: Colors.blueAccent, size: 28),
         title: Text(
           title,
@@ -169,8 +176,11 @@ class PerfilPagina extends StatelessWidget {
           subtitle,
           style: const TextStyle(color: Colors.white54, fontSize: 13),
         ),
-        trailing: const Icon(Icons.arrow_forward_ios_rounded,
-            color: Colors.white54, size: 18),
+        trailing: const Icon(
+          Icons.arrow_forward_ios_rounded,
+          color: Colors.white54,
+          size: 18,
+        ),
         onTap: onTap,
       ),
     );
