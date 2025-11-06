@@ -1,4 +1,4 @@
-name: Mobile CI/CD - Flutter App
+name: CI/CD Móvil - Aplicación Flutter
 
 on:
   push:
@@ -12,67 +12,68 @@ on:
       - master
 
 permissions:
-  contents: write  # ← Necesario para crear tags y releases
+  contents: write
 
 jobs:
-  analyze-and-test:
-    name: Code Quality & Testing
+  analizar-y-probar:
+    name: Calidad de Código y Pruebas
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
+    - name: Obtener código del repositorio
       uses: actions/checkout@v4
     
-    - name: Setup Java JDK
+    - name: Configurar Java JDK
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
         java-version: '17'
     
-    - name: Setup Flutter
+    - name: Configurar Flutter
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
         cache: true
     
-    - name: Get Flutter version
+    - name: Obtener versión de Flutter
       run: flutter --version
     
-    - name: Install dependencies
+    - name: Instalar dependencias
       run: flutter pub get
     
-    - name: Verify dependencies
+    - name: Verificar dependencias desactualizadas
       run: flutter pub outdated
       continue-on-error: true
     
-    - name: Run Flutter analyzer
+    - name: Ejecutar analizador de Flutter
       run: flutter analyze
       continue-on-error: true
     
-    - name: Check formatting
+    - name: Verificar formato de código
       run: dart format --set-exit-if-changed .
       continue-on-error: true
     
-    - name: Run tests
+    - name: Ejecutar pruebas unitarias
       run: flutter test
       continue-on-error: true
 
   versionado:
-    name: Versionado Automatico
+    name: Versionado Automático
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
-    needs: analyze-and-test
+    needs: analizar-y-probar
     outputs:
       new_version: ${{ steps.bump.outputs.new_version }}
       version_number: ${{ steps.bump.outputs.version_number }}
       build_number: ${{ steps.bump.outputs.build_number }}
     
     steps:
-      - uses: actions/checkout@v4
+      - name: Obtener código del repositorio
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       
-      - name: Obtener ultima version
+      - name: Obtener última versión
         id: get_version
         run: |
           LAST_TAG=$(git tag -l "v*" | sort -V | tail -n 1)
@@ -85,7 +86,7 @@ jobs:
             echo "last_version=$LAST_TAG" >> $GITHUB_OUTPUT
           fi
       
-      - name: Incrementar version
+      - name: Incrementar versión
         id: bump
         run: |
           LAST_VERSION="${{ steps.get_version.outputs.last_version }}"
@@ -95,11 +96,9 @@ jobs:
           MINOR=$(echo $VERSION_NUMBER | awk '{print $2}')
           PATCH=$(echo $VERSION_NUMBER | awk '{print $3}')
           
-          # Incrementar versión MINOR
           NEW_MINOR=$((MINOR + 1))
           NEW_VERSION="v${MAJOR}.${NEW_MINOR}.0"
           
-          # Para Flutter: version number sin 'v' y build number
           VERSION_NUM="${MAJOR}.${NEW_MINOR}.0"
           BUILD_NUM=$((MAJOR * 10000 + NEW_MINOR * 100 + 0))
           
@@ -111,7 +110,7 @@ jobs:
           echo "version_number=$VERSION_NUM" >> $GITHUB_OUTPUT
           echo "build_number=$BUILD_NUM" >> $GITHUB_OUTPUT
       
-      - name: Crear tag de version
+      - name: Crear etiqueta de versión
         run: |
           NEW_VERSION="${{ steps.bump.outputs.new_version }}"
           
@@ -125,12 +124,12 @@ jobs:
             COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --no-merges)
           fi
           
-          TAG_MESSAGE="Release ${NEW_VERSION} - Flutter App
+          TAG_MESSAGE="Release ${NEW_VERSION} - Aplicación Flutter
 
-          Cambios en esta version:
+          Cambios en esta versión:
           $COMMITS
 
-          Version: ${{ steps.bump.outputs.version_number }}
+          Versión: ${{ steps.bump.outputs.version_number }}
           Build: ${{ steps.bump.outputs.build_number }}
           Fecha: $(date +'%Y-%m-%d %H:%M:%S')
           Commit: ${{ github.sha }}"
@@ -138,52 +137,65 @@ jobs:
           git tag -a "$NEW_VERSION" -m "$TAG_MESSAGE"
           git push origin "$NEW_VERSION"
           
-          echo "Tag $NEW_VERSION creado exitosamente"
+          echo "Etiqueta $NEW_VERSION creada exitosamente"
   
-  build-android:
-    name: Build Android APK
+  compilar-android:
+    name: Compilar APK de Android
     runs-on: ubuntu-latest
-    needs: [analyze-and-test, versionado]
+    needs: [analizar-y-probar, versionado]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     
     steps:
-    - name: Checkout code
+    - name: Obtener código del repositorio
       uses: actions/checkout@v4
     
-    - name: Setup Java JDK
+    - name: Configurar Java JDK
       uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
         java-version: '17'
     
-    - name: Setup Flutter
+    - name: Configurar Flutter
       uses: subosito/flutter-action@v2
       with:
         channel: 'stable'
         cache: true
     
-    - name: Install dependencies
+    - name: Instalar dependencias
       run: flutter pub get
     
-    - name: Update version in pubspec.yaml
+    - name: Decodificar archivo de configuración de Firebase
+      run: |
+        echo "Restaurando google-services.json desde secrets..."
+        echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
+        echo "Archivo google-services.json restaurado correctamente"
+        if [ -f android/app/google-services.json ]; then
+          echo "Archivo google-services.json existe"
+          ls -lh android/app/google-services.json
+        else
+          echo "ERROR: google-services.json no se pudo crear"
+          exit 1
+        fi
+    
+    - name: Actualizar versión en pubspec.yaml
       run: |
         VERSION="${{ needs.versionado.outputs.version_number }}"
         BUILD="${{ needs.versionado.outputs.build_number }}"
         sed -i "s/^version: .*/version: ${VERSION}+${BUILD}/" pubspec.yaml
-        echo "Updated pubspec.yaml to version ${VERSION}+${BUILD}"
+        echo "Actualizado pubspec.yaml a versión ${VERSION}+${BUILD}"
         cat pubspec.yaml | grep "version:"
     
-    - name: Build APK (Release)
+    - name: Compilar APK de producción
       run: flutter build apk --release --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }}
     
-    - name: Build APK (Debug)
+    - name: Compilar APK de depuración
       run: flutter build apk --debug --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }}
     
-    - name: Build App Bundle
+    - name: Compilar paquete de aplicación
       run: flutter build appbundle --release --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }}
       continue-on-error: true
     
-    - name: Rename APKs with version
+    - name: Renombrar APKs con versión
       run: |
         VERSION="${{ needs.versionado.outputs.version_number }}"
         cd build/app/outputs/flutter-apk/
@@ -191,32 +203,32 @@ jobs:
         mv app-debug.apk sututeh-${VERSION}-debug.apk
         ls -lh
     
-    - name: Get APK info
+    - name: Obtener información de APKs
       run: |
         VERSION="${{ needs.versionado.outputs.version_number }}"
         echo "================================"
-        echo "Build Info - Version $VERSION"
+        echo "Información de Compilación - Versión $VERSION"
         echo "================================"
-        echo "APK Size (Release):"
+        echo "Tamaño APK (Producción):"
         ls -lh build/app/outputs/flutter-apk/sututeh-${VERSION}-release.apk
-        echo "APK Size (Debug):"
+        echo "Tamaño APK (Depuración):"
         ls -lh build/app/outputs/flutter-apk/sututeh-${VERSION}-debug.apk
     
-    - name: Upload Release APK
+    - name: Subir APK de producción
       uses: actions/upload-artifact@v4
       with:
         name: sututeh-${{ needs.versionado.outputs.version_number }}-release
         path: build/app/outputs/flutter-apk/sututeh-${{ needs.versionado.outputs.version_number }}-release.apk
         retention-days: 30
     
-    - name: Upload Debug APK
+    - name: Subir APK de depuración
       uses: actions/upload-artifact@v4
       with:
         name: sututeh-${{ needs.versionado.outputs.version_number }}-debug
         path: build/app/outputs/flutter-apk/sututeh-${{ needs.versionado.outputs.version_number }}-debug.apk
         retention-days: 7
     
-    - name: Upload App Bundle
+    - name: Subir paquete de aplicación
       uses: actions/upload-artifact@v4
       if: success()
       with:
@@ -225,64 +237,70 @@ jobs:
         retention-days: 30
       continue-on-error: true
     
-    - name: Build Summary
+    - name: Resumen de compilación
       run: |
         echo "================================"
-        echo "Build completed successfully"
-        echo "Version: ${{ needs.versionado.outputs.new_version }}"
-        echo "Build Number: ${{ needs.versionado.outputs.build_number }}"
-        echo "Release APK: sututeh-${{ needs.versionado.outputs.version_number }}-release.apk"
-        echo "Debug APK: sututeh-${{ needs.versionado.outputs.version_number }}-debug.apk"
-        echo "App Bundle: Available for Play Store"
+        echo "Compilación completada exitosamente"
+        echo "Versión: ${{ needs.versionado.outputs.new_version }}"
+        echo "Número de Build: ${{ needs.versionado.outputs.build_number }}"
+        echo "APK de Producción: sututeh-${{ needs.versionado.outputs.version_number }}-release.apk"
+        echo "APK de Depuración: sututeh-${{ needs.versionado.outputs.version_number }}-debug.apk"
+        echo "Paquete de Aplicación: Disponible para Play Store"
         echo "================================"
 
-  create-release:
-    name: Crear GitHub Release
+  crear-release:
+    name: Crear Release en GitHub
     runs-on: ubuntu-latest
-    needs: [versionado, build-android]
+    needs: [versionado, compilar-android]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     
     steps:
-      - name: Checkout code
+      - name: Obtener código del repositorio
         uses: actions/checkout@v4
       
-      - name: Download Release APK
+      - name: Descargar APK de producción
         uses: actions/download-artifact@v4
         with:
           name: sututeh-${{ needs.versionado.outputs.version_number }}-release
           path: ./artifacts/
       
-      - name: Download App Bundle
+      - name: Descargar paquete de aplicación
         uses: actions/download-artifact@v4
         with:
           name: sututeh-${{ needs.versionado.outputs.version_number }}-bundle
           path: ./artifacts/
         continue-on-error: true
       
-      - name: Create GitHub Release
+      - name: Crear Release en GitHub
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.versionado.outputs.new_version }}
           name: SUTUTEH App ${{ needs.versionado.outputs.new_version }}
           body: |
-            ##  SUTUTEH Mobile App - Release ${{ needs.versionado.outputs.new_version }}
+            ## SUTUTEH Mobile App - Release ${{ needs.versionado.outputs.new_version }}
             
-            ###  Información de la versión
+            ### Información de la versión
             - **Versión:** ${{ needs.versionado.outputs.version_number }}
-            - **Build Number:** ${{ needs.versionado.outputs.build_number }}
+            - **Número de Build:** ${{ needs.versionado.outputs.build_number }}
             - **Fecha:** ${{ github.event.head_commit.timestamp }}
             - **Commit:** ${{ github.sha }}
             
-            ###  Descargas disponibles
-            - **APK Release:** Para instalación directa en Android
-            - **App Bundle (AAB):** Para subir a Google Play Store
+            ### Descargas disponibles
+            - **APK de Producción:** Para instalación directa en Android
+            - **Paquete de Aplicación (AAB):** Para subir a Google Play Store
+            
+            ### Instrucciones de instalación
+            1. Descarga el archivo sututeh-${{ needs.versionado.outputs.version_number }}-release.apk
+            2. En tu Android, ve a Ajustes - Seguridad - Instalar aplicaciones desconocidas
+            3. Habilita tu navegador o administrador de archivos
+            4. Abre el APK descargado e instala
             
             ### Enlaces útiles
             - [Ver código fuente](https://github.com/${{ github.repository }}/tree/${{ needs.versionado.outputs.new_version }})
-            - [Comparar cambios](https://github.com/${{ github.repository }}/compare/${{ steps.get_version.outputs.last_version }}...${{ needs.versionado.outputs.new_version }})
+            - [Comparar cambios](https://github.com/${{ github.repository }}/compare/v0.0.0...${{ needs.versionado.outputs.new_version }})
             
             ### Desarrollado por
-            ${{ github.event.head_commit.author.name }}
+            **${{ github.event.head_commit.author.name }}**
           draft: false
           prerelease: false
           files: |
@@ -291,10 +309,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Release Summary
+      - name: Resumen del Release
         run: |
           echo "================================"
-          echo "GitHub Release creado"
-          echo "Tag: ${{ needs.versionado.outputs.new_version }}"
+          echo "Release en GitHub creado exitosamente"
+          echo "Etiqueta: ${{ needs.versionado.outputs.new_version }}"
           echo "URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.versionado.outputs.new_version }}"
           echo "================================"
