@@ -66,7 +66,7 @@ final _pages = [
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Misiónnnnn",
+                "Misión1",
                 style: TextStyle(
                   color: Colors.greenAccent,
                   fontSize: 18,
