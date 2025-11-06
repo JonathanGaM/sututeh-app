@@ -1,5 +1,7 @@
 class ApiConfig {
-  static const String baseUrl = "http://192.168.100.9:3001";
+  //static const String baseUrl = "http://192.168.100.9:3001";
+  static const String baseUrl = "https://sututeh-server.onrender.com";
+
   
   // Endpoints
   static const String loginMobile = "$baseUrl/api/auth/mobile/login";
