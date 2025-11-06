@@ -126,13 +126,18 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Instalar dependencias
-        run: flutter pub get
+      
+      - name: Limpiar proyecto
+        run: flutter clean
+
 
       - name: Decodificar archivo Firebase
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
           ls -lh android/app/google-services.json
+          
+      - name: Instalar dependencias
+        run: flutter pub get
 
       - name: Actualizar versión en pubspec.yaml
         run: |
