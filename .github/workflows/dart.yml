@@ -53,12 +53,11 @@ jobs:
         run: dart format --set-exit-if-changed .
         continue-on-error: false
         
-      - name: Ejecutar pruebas de Flutter
+      - name: Ejecutar pruebas unitarias e integracion
         run: flutter test
         continue-on-error: false
-
-
-    
+        
+      
 
   versionado:
     name: Versionado Automático
