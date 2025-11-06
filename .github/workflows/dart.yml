@@ -52,6 +52,11 @@ jobs:
       - name: Verificar formato de código
         run: dart format --set-exit-if-changed .
         continue-on-error: false
+        
+      - name: Ejecutar pruebas de Flutter
+        run: flutter test
+        continue-on-error: false
+
 
     
 
