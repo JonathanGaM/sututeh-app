@@ -5,13 +5,21 @@ import 'firebase_options.dart';  // 👈 AGREGAR
 import 'modulos/carga/paginas/carga_pagina.dart';
 import 'modulos/autenticacion/paginas/login_pagina.dart';
 
-void main() async {  // 👈 AGREGAR async
-  WidgetsFlutterBinding.ensureInitialized();  // 👈 AGREGAR
-  await Firebase.initializeApp(  // 👈 AGREGAR
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    // Ignorar si ya existe la app
+    print('Firebase ya inicializado: $e');
+  }
   runApp(const MyApp());
 }
+
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
