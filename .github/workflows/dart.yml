@@ -150,7 +150,7 @@ jobs:
       - name: Configurar variables de firma
         run: |
           cat <<EOF > android/key.properties
-          storeFile=app/keystore/sututeh-release.jks
+          storeFile=keystore/sututeh-release.jks
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
