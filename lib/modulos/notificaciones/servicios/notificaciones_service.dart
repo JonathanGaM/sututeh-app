@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class NotificacionesService {
   // ⚙️ Cambia esta URL si usas otro servidor o IP
-  static const String baseUrl = 'http://192.168.100.9:3001';
+  static const String baseUrl = 'https://sututeh-server.onrender.com';
 
   // ==============================================
   // 📩 GET /api/notificaciones - Todas las notificaciones

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class InicioService {
-  static const String baseUrl = 'http://192.168.100.9:3001';
+  static const String baseUrl = 'https://sututeh-server.onrender.com';
 
   String _normalizar(String texto) {
     final mapa = {
