@@ -70,7 +70,7 @@ jobs:
           flutter build apk --debug
 
           echo "🧪 Ejecutando pruebas de integración..."
-          flutter test integration_test --no-pub || echo "ignor"
+          flutter test integration_test --no-pub --coverage
         continue-on-error: false
 
 
