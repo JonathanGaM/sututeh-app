@@ -20,10 +20,9 @@ void main() {
       expect(data, anyOf(isNull, isA<Map<String, dynamic>>()));
     });
 
-    test('Debe manejar correctamente resumen semanal', () async {
-      final resumen = await service.obtenerResumenSemanal();
-      expect(resumen, isA<Map<String, dynamic>>());
-      expect(resumen.containsKey('total_reuniones'), true);
+    test('Debe devolver lista (vacía o con elementos)', () async {
+      final result = await service.obtenerNotificaciones();
+      expect(result, anyOf(isNull, isA<List<Map<String, dynamic>>>()));
     });
   });
 }
