@@ -20,11 +20,9 @@ class NotificacionesService {
         final List<dynamic> data = body['notificaciones'] ?? [];
         return data.cast<Map<String, dynamic>>();
       } else {
-        print('⚠️ Error ${response.statusCode}: ${response.body}');
         return [];
       }
-    } catch (e) {
-      print('❌ Error en obtenerNotificaciones: $e');
+    } catch (_) {
       return [];
     }
   }
@@ -43,11 +41,9 @@ class NotificacionesService {
         final data = json.decode(response.body);
         return data['total_no_leidas'] ?? 0;
       } else {
-        print('⚠️ Error ${response.statusCode}: ${response.body}');
         return 0;
       }
-    } catch (e) {
-      print('❌ Error en obtenerContador: $e');
+    } catch (_) {
       return 0;
     }
   }
@@ -66,11 +62,9 @@ class NotificacionesService {
         final data = json.decode(response.body);
         return data['proxima_reunion'];
       } else {
-        print('⚠️ Error ${response.statusCode}: ${response.body}');
         return null;
       }
-    } catch (e) {
-      print('❌ Error en obtenerProximaReunion: $e');
+    } catch (_) {
       return null;
     }
   }
@@ -88,11 +82,9 @@ class NotificacionesService {
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
-        print('⚠️ Error ${response.statusCode}: ${response.body}');
         return {'total_reuniones': 0, 'reuniones': []};
       }
-    } catch (e) {
-      print('❌ Error en obtenerResumenSemanal: $e');
+    } catch (_) {
       return {'total_reuniones': 0, 'reuniones': []};
     }
   }
