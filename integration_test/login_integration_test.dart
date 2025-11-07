@@ -2,47 +2,51 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:sututeh_app/main.dart' as app;
-import 'package:firebase_core/firebase_core.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-
-  setUpAll(() async {
-    try {
-      await Firebase.initializeApp();
-    } catch (_) {
-      // Ignora si Firebase ya está inicializado
-    }
-  });
-
-  testWidgets('🔐 Login se muestra después del Splash', (tester) async {
-    // 🚀 Iniciar la app completa
+  testWidgets('🔐 Login real y navegación a InicioPagina', (tester) async {
+    // 🚀 Inicia la app completa
     app.main();
     await tester.pumpAndSettle();
 
-    // ⏳ Esperar la pantalla de carga (5s del Timer + 2s extra por render)
+    // ⏳ Espera la pantalla de carga (Splash)
     await tester.pump(const Duration(seconds: 7));
-    await tester.pumpAndSettle(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
 
-    // 🔎 Buscar el texto del botón principal ("Ingresar")
-    expect(
-      find.textContaining(RegExp(r'Ingresar', caseSensitive: false)),
-      findsOneWidget,
-      reason: 'No se encontró el botón principal "Ingresar" en el login.',
+    // 📩 Credenciales (puedes pasarlas por --dart-define o dejar temporales)
+    const String email = String.fromEnvironment(
+      'TEST_EMAIL',
+      defaultValue: 'jonagama6@gmail.com',
+    );
+    const String password = String.fromEnvironment(
+      'TEST_PASS',
+      defaultValue: 'jgmDoki23!',
     );
 
-    // 🔎 Verificar que haya los 2 campos de texto (correo y contraseña)
-    expect(
-      find.byType(TextFormField),
-      findsNWidgets(2),
-      reason: 'No se encontraron los campos de email y contraseña.',
+    // ✏️ Rellenar campos de login
+    await tester.enterText(find.byType(TextFormField).at(0), email);
+    await tester.enterText(find.byType(TextFormField).at(1), password);
+
+    // ▶️ Presionar botón Ingresar
+    await tester.tap(find.textContaining('Ingresar'));
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+
+    // 🔎 Esperar que aparezca el texto del AppBar en InicioPagina
+    final inicioText = find.textContaining(
+      RegExp(r'SUTUTEH', caseSensitive: false),
     );
 
-    // 💡 Verificar también el botón de Google opcionalmente
+    // Esperar un poco más para animaciones de carga o red
+    await tester.pumpAndSettle(const Duration(seconds: 5));
+
+    // ✅ Verificar que estamos en la pantalla de inicio
     expect(
-      find.textContaining('Google'),
-      findsOneWidget,
-      reason: 'No se encontró el botón "Continuar con Google".',
+      inicioText,
+      findsWidgets,
+      reason: 'No se mostró la pantalla de inicio después del login.',
     );
+
+    print('✅ Login exitoso y navegación a InicioPagina confirmada.');
   });
 }
