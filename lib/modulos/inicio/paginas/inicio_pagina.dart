@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../perfil/paginas/perfil_pagina.dart';
 import '../../informacion/paginas/ayuda_pagina.dart';
 import '../../informacion/paginas/acerca_de_pagina.dart';
+import '../../inicio/servicios/inicio_service.dart';
 
 // 🔹 Importar los nuevos módulos
 import '../../escaner/paginas/escaner_pagina.dart';
@@ -20,109 +21,119 @@ class _InicioPaginaState extends State<InicioPagina> {
   // 🔹 Páginas que se renderizan según el menú inferior
   // 🔹 Páginas que se renderizan según el menú inferior
   // 🔹 Páginas que se renderizan según el menú inferior
-  final _pages = [
-    SingleChildScrollView(
+  final InicioService _inicioService = InicioService();
+  Map<String, dynamic>? _datosInicio;
+  bool _isLoadingInicio = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarInicio();
+  }
+
+  Future<void> _cargarInicio() async {
+    final data = await _inicioService.obtenerDatosInicio();
+    setState(() {
+      _datosInicio = data;
+      _isLoadingInicio = false;
+    });
+  }
+
+  // 🔹 Reemplaza el primer elemento del arreglo _pages
+  List<Widget> get _pages => [
+    _buildInicio(),
+    const EscanerPagina(),
+    const NotificacionesPagina(),
+  ];
+
+  Widget _buildInicio() {
+    if (_isLoadingInicio) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.green),
+      );
+    }
+
+    final mision = _datosInicio?['mision'] ?? 'Sin misión registrada';
+    final vision = _datosInicio?['vision'] ?? 'Sin visión registrada';
+    final cover = _datosInicio?['cover'];
+
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 🔹 Imagen principal
-          Container(
-            margin: const EdgeInsets.only(bottom: 20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            clipBehavior: Clip.hardEdge,
-            child: Image.asset(
-              "assets/imagenes/p.jpg", // tu imagen
-              fit: BoxFit.cover,
-              height: 200,
-              width: double
-                  .infinity, // ocupa todo el ancho igual que los contenedores
-            ),
-          ),
-
-          // 🔹 Contenedor de Misión
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E2939),
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.25),
-                  blurRadius: 6,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Misión1",
-                  style: TextStyle(
-                    color: Colors.greenAccent,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+          if (cover != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
+                ],
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: Image.network(
+                cover,
+                fit: BoxFit.cover,
+                height: 200,
+                width: double.infinity,
+                errorBuilder: (_, __, ___) => Image.asset(
+                  'assets/imagenes/p.jpg',
+                  fit: BoxFit.cover,
+                  height: 200,
                 ),
-                SizedBox(height: 8),
-                Text(
-                  "Representar y defender los intereses laborales, profesionales y humanos de los agremiados, promoviendo la unión, la participación y el desarrollo continuo dentro de la comunidad universitaria.",
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ],
+              ),
             ),
-          ),
+
+          // 🔹 Misión dinámica
+          _buildCard("Misión", mision, Colors.greenAccent),
           const SizedBox(height: 20),
 
-          // 🔹 Contenedor de Visión
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E2939),
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.25),
-                  blurRadius: 6,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Visión",
-                  style: TextStyle(
-                    color: Colors.greenAccent,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  "Ser un sindicato sólido, transparente y comprometido con el bienestar de sus miembros, fomentando la participación activa y el crecimiento profesional en un entorno de respeto y colaboración.",
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ],
-            ),
+          // 🔹 Visión dinámica
+          _buildCard("Visión", vision, Colors.blueAccent),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCard(String titulo, String contenido, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E2939),
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.25),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-    ),
-    const EscanerPagina(),
-    const NotificacionesPagina(),
-  ];
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            titulo,
+            style: TextStyle(
+              color: color,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            contenido,
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
 
   // 🔹 Títulos dinámicos del AppBar
   final List<String> _titulos = ['SUTUTEH', 'Escáner QR', 'Avisos'];

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:sututeh_app/modulos/escaner/servicios/asistencia_service.dart';
 
 class EscanerPagina extends StatefulWidget {
   const EscanerPagina({super.key});
@@ -11,10 +12,39 @@ class EscanerPagina extends StatefulWidget {
 class _EscanerPaginaState extends State<EscanerPagina> {
   bool _codigoDetectado = false;
   String? _ultimoCodigo;
-  final MobileScannerController _controller = MobileScannerController(
-    facing: CameraFacing.back,
-    torchEnabled: false,
-  );
+  final MobileScannerController _controller = MobileScannerController();
+
+  // 🔹 Función para registrar asistencia
+  Future<void> _registrarAsistencia(String code) async {
+    try {
+      final id = int.tryParse(code);
+      if (id == null) {
+        _mostrarSnack('Código QR inválido', Colors.red);
+        return;
+      }
+
+      final respuesta = await AsistenciaService.registrarAsistencia(
+        reunionId: id,
+      );
+
+      if (respuesta.containsKey('error')) {
+        _mostrarSnack('❌ ${respuesta['error']}', Colors.red);
+      } else {
+        _mostrarSnack(
+          '✅ ${respuesta['estado']} (+${respuesta['puntaje']} pts)',
+          Colors.green,
+        );
+      }
+    } catch (e) {
+      _mostrarSnack('Error: $e', Colors.red);
+    }
+  }
+
+  void _mostrarSnack(String mensaje, Color color) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(mensaje), backgroundColor: color));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,38 +52,28 @@ class _EscanerPaginaState extends State<EscanerPagina> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // 🔹 Cámara activa para escanear
           MobileScanner(
             controller: _controller,
             onDetect: (capture) {
-              final List<Barcode> barcodes = capture.barcodes;
+              final barcodes = capture.barcodes;
               if (barcodes.isNotEmpty) {
-                final code = barcodes.first.rawValue ?? "";
+                final code = barcodes.first.rawValue ?? '';
                 if (!_codigoDetectado || code != _ultimoCodigo) {
                   setState(() {
                     _codigoDetectado = true;
                     _ultimoCodigo = code;
                   });
 
-                  // Aquí podrías enviar el código a tu API
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Código detectado: $code'),
-                      backgroundColor: Colors.green,
-                      duration: const Duration(seconds: 3),
-                    ),
-                  );
+                  _registrarAsistencia(code);
 
-                  // Evita lecturas continuas
-                  Future.delayed(const Duration(seconds: 2), () {
+                  Future.delayed(const Duration(seconds: 3), () {
                     setState(() => _codigoDetectado = false);
                   });
                 }
               }
             },
           ),
-
-          // 🔹 Marco guía verde
+          // Marco verde
           Center(
             child: Container(
               width: 250,
@@ -64,20 +84,16 @@ class _EscanerPaginaState extends State<EscanerPagina> {
               ),
             ),
           ),
-
-          // 🔹 Solo el botón de linterna (se quitó el de salir)
+          // Linterna
           Positioned(
             top: 40,
             right: 16,
             child: IconButton(
               icon: const Icon(Icons.flash_on, color: Colors.white),
-              onPressed: () {
-                _controller.toggleTorch();
-              },
+              onPressed: () => _controller.toggleTorch(),
             ),
           ),
-
-          // 🔹 Texto informativo
+          // Texto
           Positioned(
             bottom: 60,
             left: 0,

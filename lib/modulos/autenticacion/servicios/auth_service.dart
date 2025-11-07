@@ -175,4 +175,10 @@ class AuthService {
       'roleName': prefs.getString('roleName'),
     };
   }
+
+  // 🔑 Obtener el token JWT almacenado (para llamadas autenticadas)
+  Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('authToken');
+  }
 }
