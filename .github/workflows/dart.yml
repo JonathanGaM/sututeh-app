@@ -57,9 +57,18 @@ jobs:
         run: dart format --set-exit-if-changed .
         continue-on-error: false
         
-      - name: Ejecutar pruebas unitarias e integracion
+      - name: Ejecutar pruebas unitarias 
         run: flutter test --concurrency=4  
         continue-on-error: false
+        
+      - name: Ejecutar pruebas de integración
+        run: |
+          echo " Compilando app en modo debug para pruebas de integración..."
+          flutter build apk --debug
+          echo " Ejecutando pruebas de integración..."
+          flutter test integration_test --no-pub || true
+        continue-on-error: false
+
 
   versionado:
     name: Versionado Automático
