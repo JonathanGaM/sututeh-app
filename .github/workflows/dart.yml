@@ -68,6 +68,11 @@ jobs:
 
           echo "Compilando app en modo debug para pruebas de integración..."
           flutter build apk --debug
+          echo "Verificando si hay dispositivos conectados..."
+          if flutter devices | grep -q "No devices detected"; then
+            echo "No hay dispositivos."
+          exit 0
+          fi
 
           echo "🧪 Ejecutando pruebas de integración..."
           flutter test integration_test --no-pub --coverage
