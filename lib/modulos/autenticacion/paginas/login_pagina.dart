@@ -26,7 +26,7 @@ class _LoginPaginaState extends State<LoginPagina> {
   }
 
   String? _validatePassword(String? value) {
-    if (value == null || value.length < 15) {
+    if (value == null || value.length < 8) {
       return 'Debe tener al menos 8 caracteres';
     }
     return null;
