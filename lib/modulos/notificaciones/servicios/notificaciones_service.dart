@@ -39,7 +39,7 @@ class NotificacionesService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['total_no_leidas'] ?? 0;
+        return data['total_leidas'] ?? 0;
       } else {
         return 0;
       }
