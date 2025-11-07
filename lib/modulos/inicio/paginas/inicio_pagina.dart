@@ -137,7 +137,7 @@ class _InicioPaginaState extends State<InicioPagina> {
   }
 
   // 🔹 Títulos dinámicos del AppBar
-  final List<String> _titulos = ['SUTUTEH', 'Escáner QR', 'Avisos'];
+  final List<String> _titulos = ['SUTUTEH', 'Escáner QR', 'Avisoos'];
 
   @override
   Widget build(BuildContext context) {
@@ -320,7 +320,7 @@ class _InicioPaginaState extends State<InicioPagina> {
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.notifications_none),
-                  label: 'Avisos',
+                  label: 'Avisoos',
                 ),
               ],
             ),
