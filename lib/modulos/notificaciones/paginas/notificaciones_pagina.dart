@@ -98,19 +98,6 @@ class _NotificacionesPaginaState extends State<NotificacionesPagina> {
     }
   }
 
-  String _obtenerEtiquetaTipo(String? tipo) {
-    switch (tipo) {
-      case 'nueva_reunion':
-        return 'Nueva';
-      case 'recordatorio_24h':
-        return 'Mañana';
-      case 'recordatorio_4h':
-        return 'Hoy';
-      default:
-        return '';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

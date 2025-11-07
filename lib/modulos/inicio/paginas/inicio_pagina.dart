@@ -69,12 +69,13 @@ class _InicioPaginaState extends State<InicioPagina> {
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withAlpha((0.3 * 255).toInt()),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
+
               clipBehavior: Clip.hardEdge,
               child: Image.network(
                 cover,
