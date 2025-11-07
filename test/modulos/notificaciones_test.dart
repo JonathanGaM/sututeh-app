@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sututeh_app/modulos/notificaciones/paginas/notificaciones_pagina.dart';
 
 void main() {
-  testWidgets('🧪 NotificacionesPagina se construye correctamente', (WidgetTester tester) async {
+  testWidgets('🧪 NotificacionesPagina se construye correctamente', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const MaterialApp(home: NotificacionesPagina()));
 
     // 🔹 1. Verifica que haya un Scaffold
