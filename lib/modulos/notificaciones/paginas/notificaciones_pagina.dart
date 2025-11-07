@@ -155,13 +155,13 @@ class _NotificacionesPaginaState extends State<NotificacionesPagina> {
                   Icon(
                     Icons.notifications_off_rounded,
                     size: 80,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'No hay notificaciones',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withValues(alpha: 0.5),
                       fontSize: 18,
                     ),
                   ),
@@ -170,7 +170,7 @@ class _NotificacionesPaginaState extends State<NotificacionesPagina> {
                     'Las notificaciones de reuniones\naparecerán aquí',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.3),
+                      color: Colors.white.withValues(alpha: 0.3),
                       fontSize: 14,
                     ),
                   ),
@@ -272,7 +272,7 @@ class _NotificacionesPaginaState extends State<NotificacionesPagina> {
                               color: const Color(0xFF0F0F0F),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.1),
+                                color: Colors.white.withValues(alpha: 0.1),
                               ),
                             ),
                             child: Column(

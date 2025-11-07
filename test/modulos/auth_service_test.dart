@@ -4,8 +4,6 @@ import 'package:sututeh_app/firebase_options.dart';
 
 // Evitamos importar FirebaseAuth directamente del AuthService real
 // porque intentará inicializarse sin app
-import 'package:sututeh_app/modulos/autenticacion/servicios/auth_service.dart'
-    hide AuthService;
 
 // 🔹 Mock temporal para pruebas unitarias (sin tocar Firebase)
 class MockAuthService {
