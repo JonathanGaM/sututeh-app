@@ -47,7 +47,7 @@ jobs:
 
       - name: Verificar dependencias desactualizadas
         run: flutter pub outdated
-        continue-on-error: true  
+        continue-on-error: false
 
       - name: Ejecutar analizador de Flutter
         run: flutter analyze --no-fatal-infos 
