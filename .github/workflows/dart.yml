@@ -164,12 +164,12 @@ jobs:
       - name: Restaurar keystore desde Base64
         run: |
           mkdir -p android/app/keystore
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore/sututeh-release.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore/jonathan-release.jks
 
       - name: Configurar variables de firma
         run: |
           cat <<EOF > android/key.properties
-          storeFile=keystore/sututeh-release.jks
+          storeFile=keystore/jonathan-release.jks
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
@@ -186,17 +186,17 @@ jobs:
           VERSION="${{ needs.versionado.outputs.version_number }}"
           cd build/app/outputs/flutter-apk/
           # Si existe app-release.apk, renombrarla
-          [ -f app-release.apk ] && mv app-release.apk sututeh-${VERSION}-release.apk || true
+          [ -f app-release.apk ] && mv app-release.apk jonathan-${VERSION}-release.apk || true
           # Si hay APKs split, renombrar el arm64-v8a (el más común)
-          [ -f app-arm64-v8a-release.apk ] && mv app-arm64-v8a-release.apk sututeh-${VERSION}-release.apk || true
-          mv app-debug.apk sututeh-${VERSION}-debug.apk
+          [ -f app-arm64-v8a-release.apk ] && mv app-arm64-v8a-release.apk jonathan-$-${VERSION}-release.apk || true
+          mv app-debug.apk jonathan-$-${VERSION}-debug.apk
           ls -lh
 
       - name: Subir artefactos
         uses: actions/upload-artifact@v4
         with:
-          name: sututeh-${{ needs.versionado.outputs.version_number }}-release
-          path: build/app/outputs/flutter-apk/sututeh-${{ needs.versionado.outputs.version_number }}-release.apk
+          name: jonathan-$-${{ needs.versionado.outputs.version_number }}-release
+          path: build/app/outputs/flutter-apk/jonathan-${{ needs.versionado.outputs.version_number }}-release.apk
           retention-days: 30
           compression-level: 0  
 
@@ -213,7 +213,7 @@ jobs:
       - name: Descargar APK generado
         uses: actions/download-artifact@v4
         with:
-          name: sututeh-${{ needs.versionado.outputs.version_number }}-release
+          name: jonathan-$-${{ needs.versionado.outputs.version_number }}-release
           path: ./artifacts/
 
       - name: Crear Release en GitHub
@@ -230,6 +230,6 @@ jobs:
 
             ### 🚀 Archivos
             - APK de producción listo para instalación manual
-          files: ./artifacts/sututeh-${{ needs.versionado.outputs.version_number }}-release.apk
+          files: ./artifacts/jonathan-${{ needs.versionado.outputs.version_number }}-release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
