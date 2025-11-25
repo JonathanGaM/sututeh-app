@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../servicios/auth_service.dart';
 import '../../inicio/paginas/inicio_pagina.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../../config/api_config.dart';
 
 class LoginPagina extends StatefulWidget {
   const LoginPagina({super.key});
@@ -43,12 +47,8 @@ class _LoginPaginaState extends State<LoginPagina> {
 
       setState(() => _isLoading = false);
 
-      if (result != null && mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const InicioPagina()),
-        );
-      } else {
+      // Si el login falló → no intentes enviar el token
+      if (result == null || result['user'] == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -56,6 +56,33 @@ class _LoginPaginaState extends State<LoginPagina> {
             ),
             backgroundColor: Colors.red,
           ),
+        );
+        return;
+      }
+
+      // 🔥 Obtener token FCM del dispositivo
+      final String? fcmToken = await FirebaseMessaging.instance.getToken();
+
+      if (fcmToken != null) {
+        try {
+          await http.post(
+            Uri.parse(ApiConfig.guardarTokenFcm),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({
+              "usuario_id": result['user']['id'],
+              "token": fcmToken,
+            }),
+          );
+        } catch (e) {
+          print("❌ Error enviando FCM token: $e");
+        }
+      }
+
+      // Si todo salió bien → navegar
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const InicioPagina()),
         );
       }
     }
@@ -69,9 +96,8 @@ class _LoginPaginaState extends State<LoginPagina> {
     setState(() => _isLoading = false);
 
     if (result != null) {
-      // Verificar si hubo error
+      // ❌ Correo NO registrado en BD
       if (result['exists'] == false || result['error'] != null) {
-        // El correo no está registrado en la BD
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -80,21 +106,44 @@ class _LoginPaginaState extends State<LoginPagina> {
                     'Este correo no está registrado como agremiado',
               ),
               backgroundColor: Colors.red,
-              duration: const Duration(seconds: 4),
+              duration: Duration(seconds: 4),
             ),
           );
         }
       } else {
-        // Login exitoso
+        // -----------------------------
+        // ✅ AQUI AGREGAMOS EL TOKEN FCM
+        // -----------------------------
+        final String? fcmToken = await FirebaseMessaging.instance.getToken();
+
+        if (fcmToken != null) {
+          try {
+            await http.post(
+              Uri.parse(ApiConfig.guardarTokenFcm),
+              headers: {"Content-Type": "application/json"},
+              body: jsonEncode({
+                "usuario_id": result['user']['id'], // ✔ ID recibido del backend
+                "token": fcmToken,
+                "dispositivo": "Android",
+              }),
+            );
+
+            print("🔥 Token FCM guardado para Google Login");
+          } catch (e) {
+            print("❌ Error enviando FCM token (Google Login): $e");
+          }
+        }
+        // -----------------------------
+
+        // ✔ Login exitoso → navegar
         if (mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const InicioPagina()),
+            MaterialPageRoute(builder: (_) => const InicioPagina()),
           );
         }
       }
     } else {
-      // Usuario canceló o hubo error de conexión
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

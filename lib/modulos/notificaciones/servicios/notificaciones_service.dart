@@ -1,13 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../../config/api_config.dart';
 
 class NotificacionesService {
-  // ⚙️ Cambia esta URL si usas otro servidor o IP
-  static const String baseUrl = 'https://sututeh-server.onrender.com';
+  String get baseUrl => ApiConfig.baseUrl;
 
-  // ==============================================
-  // 📩 GET /api/notificaciones - Todas las notificaciones
-  // ==============================================
   Future<List<Map<String, dynamic>>> obtenerNotificaciones() async {
     try {
       final response = await http.get(
@@ -27,9 +24,6 @@ class NotificacionesService {
     }
   }
 
-  // ==============================================
-  // 🔢 GET /api/notificaciones/contador - Contador
-  // ==============================================
   Future<int> obtenerContador() async {
     try {
       final response = await http.get(
@@ -48,9 +42,6 @@ class NotificacionesService {
     }
   }
 
-  // ==============================================
-  // 📅 GET /api/notificaciones/proxima-reunion
-  // ==============================================
   Future<Map<String, dynamic>?> obtenerProximaReunion() async {
     try {
       final response = await http.get(
@@ -69,9 +60,6 @@ class NotificacionesService {
     }
   }
 
-  // ==============================================
-  // 📊 GET /api/notificaciones/resumen-semanal
-  // ==============================================
   Future<Map<String, dynamic>> obtenerResumenSemanal() async {
     try {
       final response = await http.get(

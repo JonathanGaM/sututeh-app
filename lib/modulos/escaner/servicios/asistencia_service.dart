@@ -5,33 +5,35 @@ import 'package:sututeh_app/modulos/autenticacion/servicios/auth_service.dart';
 class AsistenciaService {
   static const String baseUrl = 'http://192.168.100.9:3001/api';
 
-  // 🔹 Registrar asistencia
+  // Registrar asistencia
   static Future<Map<String, dynamic>> registrarAsistencia({
     required int reunionId,
   }) async {
     try {
-      final token = await AuthService().getToken(); // Token JWT guardado
+      final token = await AuthService().getToken();
       if (token == null) {
-        return {'error': 'Usuario no autenticado'};
+        return {'error': 'No tienes sesión activa'};
       }
 
+      final url = Uri.parse('$baseUrl/mobile/asistencia/$reunionId');
+
       final response = await http.post(
-        Uri.parse('$baseUrl/reuniones/$reunionId/asistencia'),
+        url,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // 🔑 Importante
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json', // ⚠️ NECESARIO
         },
       );
 
+      final data = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        return data; // { estado: "...", puntaje: 10 }
       } else {
-        return {
-          'error': jsonDecode(response.body)['error'] ?? 'Error desconocido',
-        };
+        return {'error': data['error'] ?? 'Error desconocido'};
       }
     } catch (e) {
-      return {'error': 'Error de conexión: $e'};
+      return {'error': 'No se pudo conectar con el servidor'};
     }
   }
 }

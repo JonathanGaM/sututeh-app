@@ -3,6 +3,9 @@ import '../../perfil/paginas/perfil_pagina.dart';
 import '../../informacion/paginas/ayuda_pagina.dart';
 import '../../informacion/paginas/acerca_de_pagina.dart';
 import '../../inicio/servicios/inicio_service.dart';
+import '../../autenticacion/servicios/auth_service.dart';
+import '../../autenticacion/paginas/login_pagina.dart';
+import '../../perfil/servicios/perfil_service.dart';
 
 // 🔹 Importar los nuevos módulos
 import '../../escaner/paginas/escaner_pagina.dart';
@@ -18,17 +21,18 @@ class InicioPagina extends StatefulWidget {
 class _InicioPaginaState extends State<InicioPagina> {
   int _index = 0;
 
-  // 🔹 Páginas que se renderizan según el menú inferior
-  // 🔹 Páginas que se renderizan según el menú inferior
-  // 🔹 Páginas que se renderizan según el menú inferior
   final InicioService _inicioService = InicioService();
+  final PerfilService _perfilService = PerfilService();
+
   Map<String, dynamic>? _datosInicio;
+  Map<String, dynamic>? _perfil;
   bool _isLoadingInicio = true;
 
   @override
   void initState() {
     super.initState();
     _cargarInicio();
+    _cargarPerfil();
   }
 
   Future<void> _cargarInicio() async {
@@ -39,7 +43,14 @@ class _InicioPaginaState extends State<InicioPagina> {
     });
   }
 
-  // 🔹 Reemplaza el primer elemento del arreglo _pages
+  Future<void> _cargarPerfil() async {
+    final data = await _perfilService.obtenerPerfil();
+    setState(() {
+      _perfil = data;
+    });
+  }
+
+  // 🔹 Páginas inferiores
   List<Widget> get _pages => [
     _buildInicio(),
     const EscanerPagina(),
@@ -75,7 +86,6 @@ class _InicioPaginaState extends State<InicioPagina> {
                   ),
                 ],
               ),
-
               clipBehavior: Clip.hardEdge,
               child: Image.network(
                 cover,
@@ -90,11 +100,9 @@ class _InicioPaginaState extends State<InicioPagina> {
               ),
             ),
 
-          // 🔹 Misión dinámica
           _buildCard("Misión", mision, Colors.greenAccent),
           const SizedBox(height: 20),
 
-          // 🔹 Visión dinámica
           _buildCard("Visión", vision, Colors.blueAccent),
         ],
       ),
@@ -136,35 +144,30 @@ class _InicioPaginaState extends State<InicioPagina> {
     );
   }
 
-  // 🔹 Títulos dinámicos del AppBar
-  final List<String> _titulos = ['SUTUTEH', 'Escáner QR', 'Avisoos'];
+  final List<String> _titulos = ['SUTUTEH', 'Escáner QR', 'Avisos'];
 
   @override
   Widget build(BuildContext context) {
+    final foto = _perfil?["url_foto"];
+    final nombre = _perfil?["nombre_completo"] ?? "Cargando...";
+    final puesto = _perfil?["puesto"] ?? "Agremiado";
+
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
 
-      // 🔹 AppBar dinámico
       appBar: AppBar(
         backgroundColor: Colors.green,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: Padding(
-          padding: const EdgeInsets.only(left: 8.0),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              _titulos[_index],
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.1,
-              ),
-            ),
+        title: Text(
+          _titulos[_index],
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.1,
           ),
         ),
       ),
 
-      // 🔹 Drawer (menú lateral)
       drawer: Drawer(
         backgroundColor: const Color(0xFF1E2939),
         child: Column(
@@ -180,33 +183,34 @@ class _InicioPaginaState extends State<InicioPagina> {
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   CircleAvatar(
                     radius: 50,
-                    backgroundImage: AssetImage("assets/imagenes/perfil.webp"),
-                    backgroundColor: Colors.transparent,
+                    backgroundImage: foto != null
+                        ? NetworkImage(foto)
+                        : const AssetImage("assets/imagenes/perfil.webp")
+                              as ImageProvider,
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text(
-                    "Jonathan Garcia Martinez",
-                    style: TextStyle(
+                    nombre,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   Text(
-                    "Agremiado",
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    puesto,
+                    style: const TextStyle(color: Colors.white70, fontSize: 14),
                     textAlign: TextAlign.center,
                   ),
                 ],
               ),
             ),
 
-            // 🔹 Opciones de navegación
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
@@ -265,7 +269,6 @@ class _InicioPaginaState extends State<InicioPagina> {
               ),
             ),
 
-            // 🔹 Botón cerrar sesión
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: SizedBox(
@@ -278,8 +281,17 @@ class _InicioPaginaState extends State<InicioPagina> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/login');
+                  onPressed: () async {
+                    final auth = AuthService();
+                    await auth.signOut();
+
+                    if (!mounted) return;
+
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginPagina()),
+                      (route) => false,
+                    );
                   },
                   icon: const Icon(Icons.logout, color: Colors.white),
                   label: const Text(
@@ -293,10 +305,8 @@ class _InicioPaginaState extends State<InicioPagina> {
         ),
       ),
 
-      // 🔹 Contenido dinámico
       body: _pages[_index],
 
-      // 🔹 Menú inferior
       bottomNavigationBar: Container(
         color: const Color(0xFF1E2939),
         child: Stack(
@@ -320,12 +330,11 @@ class _InicioPaginaState extends State<InicioPagina> {
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.notifications_none),
-                  label: 'Avisoos',
+                  label: 'Avisos',
                 ),
               ],
             ),
 
-            // 🔹 Indicador animado verde inferior
             AnimatedPositioned(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeOut,

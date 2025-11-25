@@ -164,19 +164,19 @@ jobs:
       - name: Restaurar keystore desde Base64
         run: |
           mkdir -p android/app/keystore
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore/jonathan-release.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/keystore/sututeh-release.jks
 
       - name: Configurar variables de firma
         run: |
           cat <<EOF > android/key.properties
-          storeFile=keystore/jonathan-release.jks
+          storeFile=keystore/sututeh-release.jks
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           EOF
 
       - name: Compilar APK (release)
-        run: flutter build apk --release --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }} --split-per-abi
+        run: flutter build apk --release --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }} --split-per-abi  # 👈 Split por ABI para APKs más pequeños
 
       - name: Compilar APK (debug)
         run: flutter build apk --debug --build-name=${{ needs.versionado.outputs.version_number }} --build-number=${{ needs.versionado.outputs.build_number }}
@@ -185,7 +185,9 @@ jobs:
         run: |
           VERSION="${{ needs.versionado.outputs.version_number }}"
           cd build/app/outputs/flutter-apk/
+          # Si existe app-release.apk, renombrarla
           [ -f app-release.apk ] && mv app-release.apk jonathan-${VERSION}-release.apk || true
+          # Si hay APKs split, renombrar el arm64-v8a (el más común)
           [ -f app-arm64-v8a-release.apk ] && mv app-arm64-v8a-release.apk jonathan-${VERSION}-release.apk || true
           mv app-debug.apk jonathan-${VERSION}-debug.apk
           ls -lh
@@ -218,9 +220,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ needs.versionado.outputs.new_version }}
-          name: Jonathan App ${{ needs.versionado.outputs.new_version }}
+          name: SUTUTEH App ${{ needs.versionado.outputs.new_version }}
           body: |
-            ## 📱 Jonathan Mobile App - Release ${{ needs.versionado.outputs.new_version }}
+            ## 📱 SUTUTEH Mobile App - Release ${{ needs.versionado.outputs.new_version }}
 
             **Versión:** ${{ needs.versionado.outputs.version_number }}
             **Build:** ${{ needs.versionado.outputs.build_number }}

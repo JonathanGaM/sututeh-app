@@ -10,40 +10,57 @@ class EscanerPagina extends StatefulWidget {
 }
 
 class _EscanerPaginaState extends State<EscanerPagina> {
-  bool _codigoDetectado = false;
-  String? _ultimoCodigo;
+  bool _procesando = false;
   final MobileScannerController _controller = MobileScannerController();
 
-  // 🔹 Función para registrar asistencia
   Future<void> _registrarAsistencia(String code) async {
-    try {
-      final id = int.tryParse(code);
-      if (id == null) {
-        _mostrarSnack('Código QR inválido', Colors.red);
-        return;
-      }
+    if (_procesando) return;
 
-      final respuesta = await AsistenciaService.registrarAsistencia(
-        reunionId: id,
-      );
+    setState(() => _procesando = true);
 
-      if (respuesta.containsKey('error')) {
-        _mostrarSnack('❌ ${respuesta['error']}', Colors.red);
-      } else {
-        _mostrarSnack(
-          '✅ ${respuesta['estado']} (+${respuesta['puntaje']} pts)',
-          Colors.green,
-        );
-      }
-    } catch (e) {
-      _mostrarSnack('Error: $e', Colors.red);
+    final id = int.tryParse(code);
+    if (id == null) {
+      _mostrarSnack("Código QR inválido", Colors.red);
+      _reset();
+      return;
     }
+
+    final resp = await AsistenciaService.registrarAsistencia(reunionId: id);
+
+    if (resp.containsKey('error')) {
+      _mostrarSnack("❌ ${resp['error']}", Colors.red);
+    } else {
+      _mostrarSnack(
+        "✅ ${resp['estado']} (+${resp['puntaje']} pts)",
+        Colors.green,
+      );
+    }
+
+    _reset();
   }
 
-  void _mostrarSnack(String mensaje, Color color) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(mensaje), backgroundColor: color));
+  void _reset() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+      setState(() => _procesando = false);
+      _controller.start(); // volver a escanear
+    });
+  }
+
+  void _mostrarSnack(String msg, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: color,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -55,51 +72,45 @@ class _EscanerPaginaState extends State<EscanerPagina> {
           MobileScanner(
             controller: _controller,
             onDetect: (capture) {
-              final barcodes = capture.barcodes;
-              if (barcodes.isNotEmpty) {
-                final code = barcodes.first.rawValue ?? '';
-                if (!_codigoDetectado || code != _ultimoCodigo) {
-                  setState(() {
-                    _codigoDetectado = true;
-                    _ultimoCodigo = code;
-                  });
+              final barcode = capture.barcodes.first;
+              final code = barcode.rawValue;
 
-                  _registrarAsistencia(code);
-
-                  Future.delayed(const Duration(seconds: 3), () {
-                    setState(() => _codigoDetectado = false);
-                  });
-                }
+              if (code != null && !_procesando) {
+                _controller.stop(); // pausa escaneo
+                _registrarAsistencia(code);
               }
             },
           ),
+
           // Marco verde
           Center(
             child: Container(
-              width: 250,
-              height: 250,
+              width: 260,
+              height: 260,
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.green, width: 3),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
           ),
-          // Linterna
+
+          // Botón linterna
           Positioned(
             top: 40,
-            right: 16,
+            right: 15,
             child: IconButton(
               icon: const Icon(Icons.flash_on, color: Colors.white),
               onPressed: () => _controller.toggleTorch(),
             ),
           ),
+
           // Texto
-          Positioned(
+          const Positioned(
             bottom: 60,
             left: 0,
             right: 0,
-            child: const Text(
-              'Apunta la cámara hacia el código QR',
+            child: Text(
+              "Apunta la cámara hacia el QR",
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.white70, fontSize: 16),
             ),
