@@ -11,5 +11,5 @@ class ApiConfig {
       "$baseUrl/api/auth/mobile/guardar-token";
 
   static const String verifyGoogleEmail =
-      "$baseUrl/api/auth/mobile/verify-google-email"; // ← NUEVO
+      "$baseUrl/api/auth/mobile/verify-google-email";
 }
